@@ -63,53 +63,90 @@
   </main>
 
   <script src="auth.js"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      // Require login for this page
-      requireLogin();
+<script src="auth.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    // Require login for this page
+    requireLogin();
 
-      const user = getCurrentUser();
-      const profileContent = document.getElementById("profile-content");
-      const profileError = document.getElementById("profile-error");
+    const user = getCurrentUser();
+    const profileContent = document.getElementById("profile-content");
+    const profileError = document.getElementById("profile-error");
+    const themeSelect = document.getElementById("theme-select");
 
-      if (!user) {
-        profileError.textContent = "You must be logged in to view this page.";
-        profileError.style.display = "block";
-        return;
+    if (!user) {
+      profileError.textContent = "You must be logged in to view this page.";
+      profileError.style.display = "block";
+      return;
+    }
+
+    document.getElementById("profile-username").textContent = user.username;
+    document.getElementById("profile-role").textContent = user.role;
+
+    const prefsKey = `prefs_${user.username}`;
+
+    function applyThemeFromValue(themeValue) {
+      const root = document.documentElement;
+      const THEME_KEY = "etago_theme";
+
+      let effective = "light";
+
+      if (themeValue === "dark") {
+        effective = "dark";
+      } else if (themeValue === "system") {
+        const prefersDark = window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches;
+        effective = prefersDark ? "dark" : "light";
+      } else {
+        effective = "light";
       }
 
-      document.getElementById("profile-username").textContent = user.username;
-      document.getElementById("profile-role").textContent = user.role;
+      root.setAttribute("data-theme", effective);
+      // Store a global theme so other pages can reuse if you want
+      localStorage.setItem(THEME_KEY, effective);
+    }
 
-      // Load mock preferences from localStorage
-      const prefsKey = `prefs_${user.username}`;
-      const saved = localStorage.getItem(prefsKey);
-      if (saved) {
-        const prefs = JSON.parse(saved);
-        if (prefs.displayName) {
-          document.getElementById("display-name").value = prefs.displayName;
-        }
-        if (prefs.theme) {
-          document.getElementById("theme-select").value = prefs.theme;
-        }
+    // Load mock preferences from localStorage
+    const saved = localStorage.getItem(prefsKey);
+    let currentThemeValue = "system";
+
+    if (saved) {
+      const prefs = JSON.parse(saved);
+      if (prefs.displayName) {
+        document.getElementById("display-name").value = prefs.displayName;
       }
+      if (prefs.theme) {
+        currentThemeValue = prefs.theme;
+      }
+    }
 
-      const form = document.getElementById("profile-form");
-      const messageEl = document.getElementById("profile-message");
+    // Set the select and apply theme on load
+    themeSelect.value = currentThemeValue;
+    applyThemeFromValue(currentThemeValue);
 
-      form.addEventListener("submit", (e) => {
-        e.preventDefault();
-        const prefs = {
-          displayName: document.getElementById("display-name").value.trim(),
-          theme: document.getElementById("theme-select").value
-        };
-        localStorage.setItem(prefsKey, JSON.stringify(prefs));
-        messageEl.textContent = "Profile updated (mock only, stored locally).";
-        messageEl.style.display = "block";
-      });
+    const form = document.getElementById("profile-form");
+    const messageEl = document.getElementById("profile-message");
 
-      profileContent.style.display = "block";
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const prefs = {
+        displayName: document.getElementById("display-name").value.trim(),
+        theme: themeSelect.value
+      };
+      localStorage.setItem(prefsKey, JSON.stringify(prefs));
+      applyThemeFromValue(themeSelect.value);
+      messageEl.textContent = "Profile updated (mock only, stored locally).";
+      messageEl.style.display = "block";
     });
-  </script>
+
+    // Optional: update live when the select changes, even before submit
+    themeSelect.addEventListener("change", () => {
+      applyThemeFromValue(themeSelect.value);
+    });
+
+    profileContent.style.display = "block";
+  });
+</script>
+
 </body>
 </html>
