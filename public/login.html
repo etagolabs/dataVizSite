@@ -53,28 +53,38 @@
   </main>
 
   <script src="auth.js"></script>
-  <script>
-    // Handle the submit and call login()
-    document.addEventListener("DOMContentLoaded", () => {
-      const form = document.getElementById("login-form");
-      const errorEl = document.getElementById("login-error");
+<script src="auth.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("login-form");
+    const errorEl = document.getElementById("login-error");
 
-      form.addEventListener("submit", (e) => {
-        e.preventDefault();
-        const username = document.getElementById("username").value.trim();
-        const password = document.getElementById("password").value;
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value;
 
-        const result = login(username, password);
-        if (!result.success) {
-          errorEl.textContent = result.message;
-          errorEl.style.display = "block";
-        } else {
-          const user = getCurrentUser();
-          const firstDashboard = user.dashboards[0];  // guaranteed allowed
-          window.location.href = firstDashboard;
-        }
-      });
+      const result = login(username, password);
+
+      if (!result.success) {
+        errorEl.textContent = result.message;
+        errorEl.style.display = "block";
+        return;  // ⬅ stop here if login failed
+      }
+
+      // Get the logged-in user
+      const user = getCurrentUser();
+
+      // Compute a safe dashboard list and fallback
+      let firstDashboard = "dashboard1.html"; // default fallback
+      if (user && Array.isArray(user.dashboards) && user.dashboards.length > 0) {
+        firstDashboard = user.dashboards[0];
+      }
+
+      window.location.href = firstDashboard;
     });
-  </script>
+  });
+</script>
+
 </body>
 </html>
