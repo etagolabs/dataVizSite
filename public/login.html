@@ -69,8 +69,9 @@
           errorEl.textContent = result.message;
           errorEl.style.display = "block";
         } else {
-          // go to first dashboard after login
-          window.location.href = "dashboard1.html";
+          const user = getCurrentUser();
+          const firstDashboard = user.dashboards[0];  // guaranteed allowed
+          window.location.href = firstDashboard;
         }
       });
     });

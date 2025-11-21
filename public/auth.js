@@ -87,5 +87,19 @@ function updateNavAuthState() {
   }
 }
 
+function requireDashboardAccess(pageName) {
+  const user = getCurrentUser();
+  if (!user) {
+    window.location.href = "login.html";
+    return;
+  }
+  if (!user.dashboards.includes(pageName)) {
+    // optional feedback
+    alert("You do not have permission to access this dashboard.");
+    window.location.href = user.dashboards[0]; // send to their allowed dashboard
+  }
+}
+
+
 // Call this after DOM loads on each page that has the nav
 document.addEventListener("DOMContentLoaded", updateNavAuthState);
